@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Anil Sweets Corner",
+    "slug": "anil-sweets-corner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF8F0"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.anilsweets.corner"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF8F0"
+      },
+      "package": "com.anilsweets.corner"
+    },
+    "scheme": "anilsweets",
+    "plugins": ["expo-router"]
+  }
+}
