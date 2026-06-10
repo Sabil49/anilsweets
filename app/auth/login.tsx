@@ -11,7 +11,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../constants/AuthContext';
 import { theme } from '../../constants/theme';
@@ -19,6 +19,7 @@ import { theme } from '../../constants/theme';
 interface LoginScreenProps {
   onNavigateToRegister: () => void;
   onLoginSuccess: () => void;
+  onContinueWithoutLogin?: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, onLoginSuccess }) => {
@@ -146,6 +147,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
           )}
         </TouchableOpacity>
 
+        {/* Continue without login */}
+        {onContinueWithoutLogin && (
+          <TouchableOpacity onPress={onContinueWithoutLogin} disabled={loading} style={{ alignItems: 'center', marginBottom: theme.spacing.sm }}>
+            <Text style={{ color: theme.colors.primary, fontWeight: '600' as const }}>Continue without login</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Sign Up Link */}
         <View style={styles.signupContainer}>
           <Text style={{ color: theme.colors.text }}>Don't have an account? </Text>
@@ -161,11 +169,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 export default function LoginRoute() {
   const router = useRouter();
 
+  const { next } = useSearchParams();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={{ paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.sm }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ padding: theme.spacing.sm }}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+      </View>
+
       <LoginScreen
         onNavigateToRegister={() => router.push('/auth/register')}
-        onLoginSuccess={() => router.replace('/')}
+        onLoginSuccess={() => router.replace((next as string) ?? '/')}
+        onContinueWithoutLogin={() => {
+          const target = (next as string) ?? '/';
+          // Prevent continuing into checkout as a guest
+          if (target.includes('checkout')) {
+            router.replace('/');
+            return;
+          }
+          router.replace(target);
+        }}
       />
     </SafeAreaView>
   );

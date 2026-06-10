@@ -64,6 +64,13 @@ export default function CheckoutScreen() {
   const { userProfile, loading: authLoading, user } = useAuth();
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
+  // If auth finished loading and there's no user, redirect to login
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/auth/login?next=/checkout' as any);
+    }
+  }, [authLoading, user, router]);
+
   const addresses: Address[] = userProfile?.addresses ?? [];
   const addressesLoading = authLoading;
 
@@ -166,7 +173,7 @@ export default function CheckoutScreen() {
   }
 
   // ── Place order ───────────────────────────────────────────────────────────
-  const handlePlaceOrder = async () => {
+  const proceedPlaceOrder = async () => {
     setInlineError(null);
     setShowingError(false);
 
@@ -190,7 +197,7 @@ export default function CheckoutScreen() {
           price: (item.price ?? item.product?.price ?? 0),
         })),
         paymentMethod: "dodo",
-        userId: user?.uid, // Firebase user ID
+        userId: user?.uid, // Firebase user ID (may be undefined for guests)
         userName: userProfile?.displayName || user?.displayName || "Customer",
         userEmail: user?.email,
       }).unwrap();
@@ -248,6 +255,19 @@ export default function CheckoutScreen() {
         Alert.alert("Payment Error", raw);
       }
     }
+  };
+
+  const handlePlaceOrder = async () => {
+    // If still loading auth, do nothing
+    if (authLoading) return;
+
+    // If not signed in, redirect to login (preserves next)
+    if (!user) {
+      router.replace('/auth/login?next=/checkout' as any);
+      return;
+    }
+
+    await proceedPlaceOrder();
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -326,6 +346,8 @@ export default function CheckoutScreen() {
           />
         </SafeAreaView>
       </Modal>
+
+      
 
       {/* Header */}
       <SafeAreaView
