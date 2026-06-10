@@ -11,7 +11,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../constants/AuthContext';
 import { theme } from '../../constants/theme';
@@ -169,7 +169,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 export default function LoginRoute() {
   const router = useRouter();
 
-  const { next } = useSearchParams();
+  const { next } = useLocalSearchParams() as { next?: string };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
