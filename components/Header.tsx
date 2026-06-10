@@ -14,6 +14,7 @@ interface ScreenHeaderProps {
   onBack?: () => void;
   rightIcon?: string;
   onRightPress?: () => void;
+  compact?: boolean;
 }
 
 export function HomeHeader({ onCartPress }: HomeHeaderProps) {
@@ -42,11 +43,11 @@ export function HomeHeader({ onCartPress }: HomeHeaderProps) {
   );
 }
 
-export function ScreenHeader({ title, subtitle, onBack, rightIcon, onRightPress }: ScreenHeaderProps) {
+export function ScreenHeader({ title, subtitle, onBack, rightIcon, onRightPress, compact }: ScreenHeaderProps) {
   const { totalItems } = useCart();
 
   return (
-    <View style={styles.screenHeader}>
+    <View style={[styles.screenHeader, compact && styles.screenHeaderCompact]}>
       {onBack ? (
         <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={Colors.text} />
@@ -143,6 +144,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
+  },
+  screenHeaderCompact: {
+    paddingVertical: 8,
   },
   backBtn: {
     width: 38,

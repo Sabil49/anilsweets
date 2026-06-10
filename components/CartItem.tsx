@@ -18,8 +18,8 @@ export default function CartItemComponent({ item }: CartItemProps) {
       <Image source={imageSource} style={styles.image} resizeMode="cover" />
       <View style={styles.info}>
         <View style={styles.topRow}>
-          <Text style={styles.name}>{item.name}</Text>
-          <TouchableOpacity onPress={() => removeFromCart(item.id)} hitSlop={8}>
+          <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
+          <TouchableOpacity onPress={() => removeFromCart(item.id)} hitSlop={8} style={styles.deleteBtn}>
             <Ionicons name="trash-outline" size={18} color={Colors.muted} />
           </TouchableOpacity>
         </View>
@@ -124,5 +124,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     minWidth: 24,
     textAlign: 'center',
+  },
+  deleteBtn: {
+    marginLeft: theme.spacing.sm,
+    padding: 4,
   },
 });

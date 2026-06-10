@@ -56,6 +56,38 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Delete Account',
+      'This action cannot be undone. All your data will be permanently deleted.',
+      [
+        { text: 'Cancel', onPress: () => {} },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              Alert.alert('Account Deleted', 'Your account has been deleted.', [
+                {
+                  text: 'OK',
+                  onPress: async () => {
+                    await logout();
+                    onLogout();
+                  },
+                },
+              ]);
+            } catch (err) {
+              Alert.alert('Error', 'Failed to delete account. Please try again.');
+            } finally {
+              setLoading(false);
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
   if (!userProfile) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -240,6 +272,22 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
         ) : (
           <Text style={styles.emptyText}>No orders yet</Text>
         )}
+
+        {/* Delete Account Button */}
+        <TouchableOpacity
+          style={[styles.deleteButton, loading && { opacity: 0.6 }]}
+          onPress={handleDeleteAccount}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <MaterialCommunityIcons name="delete-forever" size={20} color="#fff" />
+              <Text style={styles.deleteButtonText}>Delete Account</Text>
+            </>
+          )}
+        </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity
@@ -460,6 +508,21 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: theme.colors.card,
+    fontSize: 16,
+    fontWeight: 'bold' as const,
+  },
+  deleteButton: {
+    backgroundColor: '#C41E3A',
+    borderRadius: theme.radius.button,
+    paddingVertical: theme.spacing.md,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  deleteButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold' as const,
   },

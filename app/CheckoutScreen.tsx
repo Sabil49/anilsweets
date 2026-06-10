@@ -148,7 +148,7 @@ export default function CheckoutScreen() {
   if (displayItems.length === 0 && !showingError) {
     return (
       <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <ScreenHeader title="Checkout" onBack={() => router.back()} />
+        <ScreenHeader title="Checkout" onBack={() => router.back()} compact />
         <View style={styles.emptyContainer}>
           <Ionicons name="bag-outline" size={64} color={COLORS.espresso[300]} />
           <Typography variant="h3" style={{ marginTop: theme.spacing.lg }}>
@@ -176,6 +176,11 @@ export default function CheckoutScreen() {
     }
 
     try {
+      console.log("[Checkout] Starting order creation with address:", {
+        id: selectedAddress.id,
+        fullName: selectedAddress.fullName,
+      });
+
       const result = await createOrder({
         addressId: selectedAddress.id,
         items: cartItems.map((item) => ({
@@ -190,7 +195,7 @@ export default function CheckoutScreen() {
         userEmail: user?.email,
       }).unwrap();
 
-      console.log("[Checkout] Order created:", result.order.id);
+      console.log("[Checkout] Order created successfully:", result.order.id);
       console.log("[Checkout] Order response:", JSON.stringify(result, null, 2));
       console.log("[Checkout] Selected address:", selectedAddress);
       console.log("[Checkout] User ID:", user?.uid);
