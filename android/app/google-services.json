@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "41746957429",
+    "project_id": "sweets-9052e",
+    "storage_bucket": "sweets-9052e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41746957429:android:daf3e9ad318220db08243c",
+        "android_client_info": {
+          "package_name": "com.anilsweets.corner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMI5kk_NQ7cNjDMUBazNwYFTBOC5tL7x4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
