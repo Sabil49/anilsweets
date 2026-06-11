@@ -14,6 +14,11 @@ export interface Address {
   country?: string;
   isDefault?: boolean;
   createdAt?: string;
+  pincode?: string; // compatibility alias for existing UI
+}
+
+export interface CreateAddressRequest extends Omit<Address, 'id' | 'createdAt'> {
+  userEmail?: string;
 }
 
 export const addressesApi = createApi({
@@ -38,7 +43,7 @@ export const addressesApi = createApi({
       }),
       providesTags: ['Address'],
     }),
-    createAddress: builder.mutation<{ address: Address }, Omit<Address, 'id' | 'createdAt'>>({
+    createAddress: builder.mutation<{ address: Address }, CreateAddressRequest>({
       query: (data) => ({
         url: '/api/addresses',
         method: 'POST',

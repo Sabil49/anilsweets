@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Radius, theme } from '../constants/theme';
 import PrimaryButton from '../components/PrimaryButton';
 
@@ -27,15 +27,15 @@ function ConfettiDot({ color, style }: ConfettiDotProps) {
 
 const nextSteps = [
   {
-    icon: 'call',
-    bg: '#22C55E',
-    title: "We'll call you",
-    sub: 'To confirm your order & details',
+    icon: 'checkmark',
+    bg: Colors.success,
+    title: 'Order Confirmed',
+    sub: 'Your order has been successfully confirmed',
   },
   {
     icon: 'storefront',
     bg: Colors.primary,
-    title: 'Order is prepared',
+    title: 'Order is being prepared',
     sub: 'Freshly made with love at our store',
   },
   {
@@ -45,6 +45,8 @@ const nextSteps = [
     sub: 'Come collect or we\'ll bring it to you',
   },
 ];
+
+const activeStepIndex = 0;
 
 type RootStackParamList = {
   OrderSuccess: undefined;
@@ -57,6 +59,8 @@ interface OrderSuccessScreenProps {
 
 export default function OrderSuccessScreen({ onFinish }: OrderSuccessScreenProps) {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const orderId = typeof params.orderId === 'string' ? params.orderId : undefined;
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
@@ -124,7 +128,7 @@ export default function OrderSuccessScreen({ onFinish }: OrderSuccessScreenProps
         <View style={styles.orderIdCard}>
           <Text style={styles.orderIdLabel}>Order ID</Text>
           <View style={styles.orderIdWrap}>
-            <Text style={styles.orderId}>{ORDER_ID}</Text>
+            <Text style={styles.orderId}>{orderId ?? ORDER_ID}</Text>
             <TouchableOpacity>
               <Ionicons name="copy-outline" size={18} color={Colors.primary} />
             </TouchableOpacity>
@@ -134,18 +138,53 @@ export default function OrderSuccessScreen({ onFinish }: OrderSuccessScreenProps
         {/* Next Steps */}
         <View style={styles.stepsSection}>
           <Text style={styles.stepsTitle}>What's Next?</Text>
-          {nextSteps.map((step, index) => (
-            <View key={index} style={styles.stepItem}>
-              <View style={[styles.stepIcon, { backgroundColor: step.bg }]}>
-                <Ionicons name={step.icon as any} size={20} color="#fff" />
+          {nextSteps.map((step, index) => {
+            const isActive = index === activeStepIndex;
+            return (
+              <View key={index} style={styles.stepItem}>
+                <View style={styles.stepPoint}>
+                  <View
+                    style={[
+                      styles.stepIcon,
+                      { backgroundColor: isActive ? step.bg : Colors.border },
+                    ]}
+                  >
+                    <Ionicons
+                      name={step.icon as any}
+                      size={20}
+                      color={isActive ? '#fff' : Colors.muted}
+                    />
+                  </View>
+                  {index < nextSteps.length - 1 && (
+                    <View
+                      style={[
+                        styles.stepLine,
+                        { backgroundColor: Colors.border },
+                      ]}
+                    />
+                  )}
+                </View>
+                <View style={styles.stepContent}>
+                  <Text
+                    style={[
+                      styles.stepItemTitle,
+                      !isActive && styles.stepItemTitleInactive,
+                    ]}
+                  >
+                    {step.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.stepItemSub,
+                      !isActive && styles.stepItemSubInactive,
+                    ]}
+                  >
+                    {step.sub}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepItemTitle}>{step.title}</Text>
-                <Text style={styles.stepItemSub}>{step.sub}</Text>
-              </View>
-              {index < nextSteps.length - 1 && <View style={styles.stepLine} />}
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* CTA */}
@@ -158,7 +197,7 @@ export default function OrderSuccessScreen({ onFinish }: OrderSuccessScreenProps
           />
           <PrimaryButton
             title="View Your Orders"
-            onPress={() => {}}
+            onPress={() => router.push('/order-tracking')}
             variant="outline"
           />
         </View>
@@ -246,7 +285,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   stepItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
     marginBottom: theme.spacing.md,
+  },
+  stepPoint: {
+    width: 50,
+    alignItems: 'center' as const,
   },
   stepIcon: {
     width: 50,
@@ -258,21 +303,25 @@ const styles = StyleSheet.create({
   },
   stepContent: {
     marginLeft: theme.spacing.md,
+    flex: 1,
   },
   stepItemTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: Colors.text,
   },
+  stepItemTitleInactive: {
+    color: Colors.muted,
+  },
   stepItemSub: {
     fontSize: 12,
     color: Colors.muted,
     marginTop: theme.spacing.xs,
   },
+  stepItemSubInactive: {
+    color: '#B0B0B0',
+  },
   stepLine: {
-    position: 'absolute',
-    left: 24,
-    top: 50,
     width: 2,
     height: 60,
     backgroundColor: Colors.border,

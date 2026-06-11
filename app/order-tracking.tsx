@@ -37,6 +37,9 @@ export interface OrderItem {
 
 interface OrderTrackingScreenProps {
   order: Order;
+  orders: Order[];
+  selectedOrderId: string | null;
+  onSelectOrder: (orderId: string) => void;
   onGoHome: () => void;
 }
 
@@ -47,7 +50,7 @@ const statusSteps = [
   { status: 'delivered', label: 'Delivered', icon: 'home-circle' as const },
 ];
 
-export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order, onGoHome }) => {
+export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order, orders, selectedOrderId, onSelectOrder, onGoHome }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const scaleAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -73,6 +76,28 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order,
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
         <ScreenHeader title="Order Tracking" />
+
+        <Text style={styles.sectionTitle}>Your Orders</Text>
+        <View style={styles.ordersList}>
+          {orders.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.orderTab,
+                item.id === selectedOrderId ? styles.orderTabActive : undefined,
+              ]}
+              onPress={() => onSelectOrder(item.id)}
+            >
+              <View style={styles.orderTabHeader}>
+                <Text style={styles.orderTabLabel}>{item.orderId}</Text>
+                <Text style={styles.orderTabAmount}>₹{item.total.toFixed(2)}</Text>
+              </View>
+              <Text style={styles.orderTabSub}>
+                {new Date(item.date).toLocaleDateString('en-IN')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Order Card */}
         <View style={styles.orderCard}>
@@ -120,43 +145,44 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order,
         {/* Status Timeline */}
         <Text style={styles.sectionTitle}>Delivery Status</Text>
         <View style={styles.statusContainer}>
-          {statusSteps.map((step, index) => (
-            <View key={step.status} style={{ alignItems: 'center' as const }}>
-              {/* Status Circle */}
-              <View
-                style={[
-                  styles.statusCircle,
-                  {
-                    backgroundColor:
-                      index <= currentStepIndex_
-                        ? getStatusColor(index)
-                        : theme.colors.background,
-                    borderColor: getStatusColor(index),
-                  },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name={step.icon}
-                  size={24}
-                  color={index <= currentStepIndex_ ? theme.colors.card : theme.colors.muted}
-                />
-              </View>
-
-              {/* Connecting Line */}
-              {index < statusSteps.length - 1 && (
+          <View style={styles.statusLineBackground} />
+          <View
+            style={[
+              styles.statusLineProgress,
+              {
+                width: `${(currentStepIndex_ / (statusSteps.length - 1)) * 100}%`,
+                backgroundColor: theme.colors.success,
+              },
+            ]}
+          />
+          <View style={styles.statusPointsRow}>
+            {statusSteps.map((step, index) => (
+              <View key={step.status} style={styles.statusStep}>
                 <View
                   style={[
-                    styles.statusLine,
+                    styles.statusCircle,
                     {
                       backgroundColor:
-                        index < currentStepIndex_ ? theme.colors.success : theme.colors.border,
+                        index <= currentStepIndex_
+                          ? getStatusColor(index)
+                          : theme.colors.background,
+                      borderColor: getStatusColor(index),
                     },
                   ]}
-                />
-              )}
-
-              {/* Status Label */}
+                >
+                  <MaterialCommunityIcons
+                    name={step.icon}
+                    size={24}
+                    color={index <= currentStepIndex_ ? theme.colors.card : theme.colors.muted}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+          <View style={styles.statusLabelsRow}>
+            {statusSteps.map((step, index) => (
               <Text
+                key={step.status}
                 style={[
                   styles.statusLabel,
                   {
@@ -167,8 +193,8 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order,
               >
                 {step.label}
               </Text>
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
 
         {/* Items Section */}
@@ -231,9 +257,17 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order,
 
 export default function OrderTrackingRoute() {
   const router = useRouter();
-  const { currentOrder } = useOrder();
+  const { orders, currentOrder, setCurrentOrder } = useOrder();
 
-  if (!currentOrder) {
+  const selectedOrderId = currentOrder?.id ?? (orders.length > 0 ? orders[0].id : null);
+  const selectedOrder = orders.find((order) => order.id === selectedOrderId) ?? currentOrder;
+
+  const handleSelectOrder = (orderId: string) => {
+    const order = orders.find((item) => item.id === orderId);
+    if (order) setCurrentOrder(order);
+  };
+
+  if (orders.length === 0) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg }}>
@@ -257,7 +291,15 @@ export default function OrderTrackingRoute() {
     );
   }
 
-  return <OrderTrackingScreen order={currentOrder} onGoHome={() => router.push('/')} />;
+  return (
+    <OrderTrackingScreen
+      order={selectedOrder!}
+      orders={orders}
+      selectedOrderId={selectedOrderId}
+      onSelectOrder={handleSelectOrder}
+      onGoHome={() => router.push('/')}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -328,12 +370,46 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
   statusContainer: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'flex-start' as const,
+    position: 'relative' as const,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     marginBottom: theme.spacing.xl,
     paddingHorizontal: theme.spacing.sm,
-    position: 'relative' as const,
+    minHeight: 140,
+  },
+  statusLineBackground: {
+    position: 'absolute' as const,
+    top: 40,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
+    height: 2,
+    backgroundColor: theme.colors.border,
+    zIndex: 0,
+  },
+  statusLineProgress: {
+    position: 'absolute' as const,
+    top: 40,
+    left: theme.spacing.sm,
+    height: 2,
+    zIndex: 1,
+  },
+  statusPointsRow: {
+    flexDirection: 'row' as const,
+    width: '100%',
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    zIndex: 2,
+  },
+  statusLabelsRow: {
+    flexDirection: 'row' as const,
+    width: '100%',
+    justifyContent: 'space-between' as const,
+    marginTop: theme.spacing.md,
+    zIndex: 2,
+  },
+  statusStep: {
+    alignItems: 'center' as const,
+    width: 56,
   },
   statusCircle: {
     width: 56,
@@ -343,11 +419,7 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     backgroundColor: theme.colors.card,
-  },
-  statusLine: {
-    position: 'absolute' as const,
-    height: 3,
-    top: 28,
+    zIndex: 3,
   },
   statusLabel: {
     fontSize: 11,
@@ -355,6 +427,41 @@ const styles = StyleSheet.create({
     textAlign: 'center' as const,
     fontWeight: '500' as const,
     maxWidth: 70,
+  },
+  ordersList: {
+    marginBottom: theme.spacing.lg,
+  },
+  orderTab: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  orderTabActive: {
+    borderColor: theme.colors.primary,
+    borderWidth: 2,
+  },
+  orderTabHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+  },
+  orderTabLabel: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: theme.colors.text,
+  },
+  orderTabAmount: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: theme.colors.primary,
+  },
+  orderTabSub: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    marginTop: theme.spacing.xs,
   },
   itemsCard: {
     backgroundColor: theme.colors.card,

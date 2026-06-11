@@ -5,8 +5,10 @@ import { Typography } from "../components/ui/Typography";
 import { API_URL } from "../constants/config";
 import { COLORS, theme } from "../constants/theme";
 import { useCart } from "../constants/CartContext";
-import { useAuth, type Address } from "../constants/AuthContext";
+import { useAuth } from "../constants/AuthContext";
+import { useOrder } from "../constants/OrderContext";
 import { useCreateOrderMutation } from "../store/services/ordersApi";
+import { useGetAddressesQuery, type Address } from "../store/services/addressesApi";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -62,7 +64,30 @@ export default function CheckoutScreen() {
   const [showingError, setShowingError] = useState(false); // prevents blank-screen flash
 
   const { userProfile, loading: authLoading, user } = useAuth();
+  const { setCurrentOrder, addOrder } = useOrder();
   const [createOrder, { isLoading }] = useCreateOrderMutation();
+  const { data: addressData, isLoading: addressQueryLoading } = useGetAddressesQuery(user?.uid ?? '', {
+    skip: !user?.uid,
+  });
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/cart');
+    }
+  };
+
+  const formatErrorMessage = (value: unknown) => {
+    if (!value) return 'Unable to start payment. Please try again.';
+    if (typeof value === 'string') return value;
+    if (value instanceof Error) return value.message;
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  };
+
+  const addresses: Address[] = addressData?.addresses ?? [];
+  const addressesLoading = authLoading || addressQueryLoading;
 
   // If auth finished loading and there's no user, redirect to login
   useEffect(() => {
@@ -70,9 +95,6 @@ export default function CheckoutScreen() {
       router.replace('/auth/login?next=/checkout' as any);
     }
   }, [authLoading, user, router]);
-
-  const addresses: Address[] = userProfile?.addresses ?? [];
-  const addressesLoading = authLoading;
 
   // Decide which cart items to show — use ref fallback if Redux was cleared
   const displayItems = cartItems.length > 0 ? cartItems : cartItemsRef.current;
@@ -83,7 +105,7 @@ export default function CheckoutScreen() {
         addresses.find((a) => a.isDefault) ?? addresses[0];
       setSelectedAddress(def);
     }
-  }, [addresses]);
+  }, [addresses, selectedAddress]);
 
   useEffect(() => {
     console.log("[Checkout] Resolved API_URL:", API_URL);
@@ -99,15 +121,15 @@ export default function CheckoutScreen() {
         url.includes("checkout/success") ||
         url.includes("/return") ||
         url.includes("order-success") ||
-        url.startsWith("aniilsweets://")
+        url.startsWith("anilsweets://")
       ) {
         const orderId = extractOrderId(url);
         console.log("[Checkout] Extracted orderId:", orderId);
         setWebViewUrl(null);
 
         if (orderId && orderId !== "" && orderId !== "success") {
-          // Navigate directly to the order details screen with the real UUID
-          router.replace(`/orders/${orderId}` as any);
+          // Navigate to the app success screen with orderId query
+          router.replace(`/order-success?orderId=${encodeURIComponent(orderId)}` as any);
         } else {
           console.warn("[Checkout] No valid orderId, going to account");
           router.replace("/account" as any);
@@ -202,6 +224,27 @@ export default function CheckoutScreen() {
         userEmail: user?.email,
       }).unwrap();
 
+      const backendStatus = String(result.order.status ?? 'PLACED').toLowerCase();
+      const normalizedStatus = backendStatus === 'placed' ? 'confirmed' : backendStatus;
+      const mappedCurrentOrder = {
+        id: result.order.id,
+        orderId: result.order.orderNumber ?? result.order.id,
+        date: Date.now(),
+        total: result.order.total ?? 0,
+        paymentMethod: (result.order.paymentMethod ?? 'dodo').toLowerCase(),
+        status: normalizedStatus as 'confirmed' | 'preparing' | 'out_for_delivery' | 'delivered',
+        items: (result.order.items ?? []).map((item: any, index: number) => ({
+          id: item.productId ? String(item.productId) : String(index),
+          name: item.productName ?? item.productId ?? 'Item',
+          quantity: item.quantity ?? 1,
+          price: item.price ?? 0,
+        })),
+        deliveryAddress: `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.zipCode ?? selectedAddress.pincode}`,
+        estimatedDelivery: Date.now() + 3 * 24 * 60 * 60 * 1000,
+      };
+      addOrder(mappedCurrentOrder);
+      setCurrentOrder(mappedCurrentOrder);
+
       console.log("[Checkout] Order created successfully:", result.order.id);
       console.log("[Checkout] Order response:", JSON.stringify(result, null, 2));
       console.log("[Checkout] Selected address:", selectedAddress);
@@ -234,16 +277,9 @@ export default function CheckoutScreen() {
     } catch (err: any) {
       console.error("[Checkout] Error:", err);
 
-      let raw: string =
+      const raw: string =
         err?.data?.error ??
-        err?.message ??
-        "Unable to start payment. Please try again.";
-
-      // Detect backend Dodo unauthorized
-      if (err?.status === 401 || /Unauthorized|unauthorized/i.test(raw)) {
-        raw =
-          "Payment provider unauthorized. Please verify your Dodo live API key/secret in backend environment variables and restart the server.";
-      }
+        formatErrorMessage(err);
 
       // Show inline for stock errors — keeps the user on this screen
       const isStock = /stock|insufficient|only has/i.test(raw);
@@ -316,7 +352,7 @@ export default function CheckoutScreen() {
               const url = navState.url;
               if (
                   url.startsWith("myzo://") ||
-                  url.startsWith("aniilsweets://") ||
+                  url.startsWith("anilsweets://") ||
                   url.includes("checkout/success") ||
                   url.includes("/return") ||
                   url.includes("order-success")
@@ -331,7 +367,7 @@ export default function CheckoutScreen() {
                 );
 
                 if (orderId && orderId !== "" && orderId !== "success") {
-                  router.replace(`/orders/${orderId}` as any);
+                  router.replace(`/order-success?orderId=${encodeURIComponent(orderId)}` as any);
                 } else {
                   router.replace("/account" as any);
                 }
@@ -354,7 +390,7 @@ export default function CheckoutScreen() {
         edges={["top"]}
         style={{ backgroundColor: COLORS.background }}
       >
-        <ScreenHeader title="Checkout" subtitle="Review & complete your order" onBack={() => router.back()} />
+        <ScreenHeader title="Checkout" subtitle="Review & complete your order" onBack={handleBack} />
       </SafeAreaView>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>

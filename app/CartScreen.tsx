@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors, Radius, theme } from '../constants/theme';
@@ -16,13 +17,22 @@ import { useCart } from '../constants/CartContext';
 
 export default function CartScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { cartItems, totalItems, subtotal, deliveryFee, taxes, total } = useCart();
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <ScreenHeader title="Your Cart" subtitle="Anil Sweets Corner" onBack={() => router.back()} />
-        <View style={styles.emptyContent}>
+        <ScreenHeader title="Your Cart" subtitle="Anil Sweets Corner" onBack={handleBack} />
+        <View style={[styles.emptyContent, { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) }]}> 
           <Text style={{ fontSize: 60, marginBottom: 16 }}>🛍️</Text>
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <Text style={styles.emptySubtitle}>Add some sweets to get started!</Text>
@@ -41,11 +51,13 @@ export default function CartScreen() {
       <ScreenHeader
         title="Your Cart"
         subtitle="Anil Sweets Corner"
-        onBack={() => router.back()}
-        rightIcon="bag-outline"
+        onBack={handleBack}
       />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: theme.spacing.lg * 11 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: theme.spacing.lg * 11 + insets.bottom }}
+      >
         {/* Cart Items */}
         <View style={{ marginTop: theme.spacing.xs }}>
           {cartItems.map((item) => (
@@ -104,7 +116,7 @@ export default function CartScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, theme.spacing.sm) }]}> 
         <PrimaryButton title="Proceed to Checkout" onPress={() => router.push('/checkout')} />
       </View>
     </View>
@@ -165,19 +177,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
+    flex: 1,
+    minWidth: 0,
   },
   summaryLabel: {
     fontSize: 13,
     color: Colors.muted,
     flex: 1,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
+    minWidth: 64,
+    textAlign: 'right',
   },
   deliveryWrap: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   originalDelivery: {
     fontSize: 11,

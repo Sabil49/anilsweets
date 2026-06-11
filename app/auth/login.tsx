@@ -171,10 +171,18 @@ export default function LoginRoute() {
 
   const { next } = useLocalSearchParams() as { next?: string };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.sm }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ padding: theme.spacing.sm }}>
+        <TouchableOpacity onPress={handleBack} style={{ padding: theme.spacing.sm }}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
         </TouchableOpacity>
       </View>

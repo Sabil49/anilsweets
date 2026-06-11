@@ -15,7 +15,9 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/Header';
 import { useAuth } from '../constants/AuthContext';
+import { authInstance } from '../config/firebase';
 import { useOrder } from '../constants/OrderContext';
+import { useGetAddressesQuery } from '../store/services/addressesApi';
 import { theme } from '../constants/theme';
 
 interface ProfileScreenProps {
@@ -26,6 +28,10 @@ interface ProfileScreenProps {
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }) => {
   const { userProfile, logout, error: authError } = useAuth();
   const { orders, fetchUserOrders, loading: ordersLoading } = useOrder();
+  const { data: addressData } = useGetAddressesQuery(userProfile?.id ?? '', {
+    skip: !userProfile?.id,
+  });
+  const backendAddresses = addressData?.addresses ?? [];
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
@@ -67,17 +73,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
           onPress: async () => {
             try {
               setLoading(true);
-              Alert.alert('Account Deleted', 'Your account has been deleted.', [
-                {
-                  text: 'OK',
-                  onPress: async () => {
-                    await logout();
-                    onLogout();
-                  },
-                },
-              ]);
-            } catch (err) {
-              Alert.alert('Error', 'Failed to delete account. Please try again.');
+              const currentUser = authInstance.currentUser;
+              if (!currentUser) {
+                throw new Error('No authenticated user found.');
+              }
+
+              await currentUser.delete();
+              await logout();
+              onLogout();
+
+              Alert.alert('Account Deleted', 'Your account has been deleted.');
+            } catch (err: any) {
+              console.error('Error deleting account:', err);
+              const message = err?.message ?? 'Failed to delete account. Please try again.';
+              Alert.alert('Error', message);
             } finally {
               setLoading(false);
             }
@@ -164,10 +173,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
         </View>
 
         {/* Addresses */}
-        {userProfile.addresses && userProfile.addresses.length > 0 && (
+        {backendAddresses.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Saved Addresses</Text>
-            {userProfile.addresses.map((address) => (
+            {backendAddresses.map((address) => (
               <View key={address.id} style={styles.addressItem}>
                 <MaterialCommunityIcons
                   name="map-marker"
@@ -182,7 +191,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
                     )}
                   </Text>
                   <Text style={styles.addressText}>
-                    {address.address}, {address.city}, {address.state} {address.pincode}
+                    {address.address}, {address.city}, {address.state} {address.zipCode ?? address.pincode}
                   </Text>
                 </View>
               </View>

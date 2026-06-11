@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../ui/Card';
 import { Typography } from '../ui/Typography';
 import { COLORS, theme } from '../../constants/theme';
-import type { Address } from '../../constants/AuthContext';
+import type { Address } from '../../store/services/addressesApi';
 
 interface AddressCardProps {
   address: Address;
@@ -36,7 +36,7 @@ export const AddressCard: React.FC<AddressCardProps> = ({
               {address.address}
             </Typography>
             <Typography variant="caption" color={COLORS.text.muted}>
-              {address.city}, {address.state} {address.pincode}
+              {address.city}, {address.state} {address.zipCode ?? address.pincode}
             </Typography>
             <Typography variant="caption" color={COLORS.text.muted}>
               {address.phone}

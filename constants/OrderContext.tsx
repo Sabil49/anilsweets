@@ -15,6 +15,7 @@ interface OrderContextType {
     userId: string
   ) => Promise<Order>;
   fetchUserOrders: (userId: string) => Promise<void>;
+  addOrder: (order: Order) => void;
   setCurrentOrder: (order: Order | null) => void;
 }
 
@@ -73,6 +74,10 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     []
   );
 
+  const addOrder = useCallback((order: Order) => {
+    setOrders((prev) => [order, ...prev]);
+  }, []);
+
   const fetchUserOrders = useCallback(async (userId: string) => {
     try {
       setLoading(true);
@@ -121,6 +126,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loading,
         createOrder,
         fetchUserOrders,
+        addOrder,
         setCurrentOrder,
       }}
     >

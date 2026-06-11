@@ -19,7 +19,7 @@ import { API_URL } from '../../constants/config';
 
 export default function AddAddressScreen() {
   const router = useRouter();
-  const { addAddress, user, error: authError } = useAuth();
+  const { user, error: authError } = useAuth();
   const [createAddressBackend] = useCreateAddressMutation();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -76,6 +76,7 @@ export default function AddAddressScreen() {
       
       const backendResponse = await createAddressBackend({
         userId: user.uid,
+        userEmail: user.email ?? undefined,
         fullName: fullName.trim(),
         phone: phone.trim(),
         address: address.trim(),
@@ -87,19 +88,6 @@ export default function AddAddressScreen() {
       }).unwrap();
 
       console.log('[AddAddress] Backend response:', backendResponse);
-
-      // Then save to Firebase (local)
-      await addAddress({
-        id: backendResponse.address.id, // Use backend-generated ID
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        address: address.trim(),
-        city: city.trim(),
-        state: state.trim(),
-        pincode: pincode.trim(),
-        isDefault: false,
-      });
-      
       Alert.alert('Address Added', 'Your address has been saved.');
       router.back();
     } catch (err) {

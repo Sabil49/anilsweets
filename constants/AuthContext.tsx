@@ -46,12 +46,6 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (displayName: string, phoneNumber?: string) => Promise<void>;
   
-  // Address methods
-  addAddress: (address: Address) => Promise<void>;
-  updateAddress: (addressId: string, address: Partial<Address>) => Promise<void>;
-  deleteAddress: (addressId: string) => Promise<void>;
-  setDefaultAddress: (addressId: string) => Promise<void>;
-  
   // Error handling
   error: string | null;
   clearError: () => void;
@@ -189,88 +183,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addAddress = async (address: Address) => {
-    try {
-      setError(null);
-      if (!user) throw new Error('No user logged in');
-
-      const newAddress = { ...address, id: Date.now().toString() };
-      const userDocRef = doc(db, 'users', user.uid);
-      
-      const updatedAddresses = userProfile?.addresses ? [...userProfile.addresses, newAddress] : [newAddress];
-      
-      await setDoc(userDocRef, { addresses: updatedAddresses }, { merge: true });
-      
-      setUserProfile((prev) => 
-        prev ? { ...prev, addresses: updatedAddresses } : null
-      );
-    } catch (err) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
-
-  const updateAddress = async (addressId: string, addressUpdate: Partial<Address>) => {
-    try {
-      setError(null);
-      if (!user) throw new Error('No user logged in');
-
-      const updatedAddresses = userProfile?.addresses?.map((addr) =>
-        addr.id === addressId ? { ...addr, ...addressUpdate } : addr
-      ) || [];
-
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { addresses: updatedAddresses }, { merge: true });
-      
-      setUserProfile((prev) => 
-        prev ? { ...prev, addresses: updatedAddresses } : null
-      );
-    } catch (err) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
-
-  const deleteAddress = async (addressId: string) => {
-    try {
-      setError(null);
-      if (!user) throw new Error('No user logged in');
-
-      const updatedAddresses = userProfile?.addresses?.filter((addr) => addr.id !== addressId) || [];
-
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { addresses: updatedAddresses }, { merge: true });
-      
-      setUserProfile((prev) => 
-        prev ? { ...prev, addresses: updatedAddresses } : null
-      );
-    } catch (err) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
-
-  const setDefaultAddress = async (addressId: string) => {
-    try {
-      setError(null);
-      if (!user) throw new Error('No user logged in');
-
-      const updatedAddresses = userProfile?.addresses?.map((addr) => ({
-        ...addr,
-        isDefault: addr.id === addressId,
-      })) || [];
-
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { addresses: updatedAddresses }, { merge: true });
-      
-      setUserProfile((prev) => 
-        prev ? { ...prev, addresses: updatedAddresses } : null
-      );
-    } catch (err) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
 
   const handleAuthError = (err: unknown) => {
     if (err instanceof Error) {
@@ -305,10 +217,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         resetPassword,
         updateUserProfile,
-        addAddress,
-        updateAddress,
-        deleteAddress,
-        setDefaultAddress,
         error,
         clearError,
       }}
