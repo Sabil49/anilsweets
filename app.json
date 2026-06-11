@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#FFF8F0"
-    },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.anilsweets.corner"
+      "bundleIdentifier": "com.anilsweets.corner",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,8 +21,27 @@
     },
     "scheme": "anilsweets",
     "extra": {
-      "API_URL": "https://anilsweetbackend.vercel.app"
+      "API_URL": "https://anilsweetbackend.vercel.app",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "587f68db-ffc5-4278-b545-f7da6cf66d46"
+      }
     },
-    "plugins": ["expo-router"]
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0",
+            "useFrameworks": "static",
+            "useModularHeaders": true
+          }
+        }
+      ]
+    ],
+    "owner": "sabil10"
   }
 }
