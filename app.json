@@ -12,15 +12,6 @@
         "projectId": "587f68db-ffc5-4278-b545-f7da6cf66d46"
       }
     },
-    "extra": {
-      "API_URL": "https://anilsweetbackend.vercel.app",
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "587f68db-ffc5-4278-b545-f7da6cf66d46"
-      }
-    },
     "owner": "sabil10"
   }
 }
