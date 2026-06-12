@@ -17,7 +17,8 @@
       "adaptiveIcon": {
         "backgroundColor": "#FFF8F0"
       },
-      "package": "com.anilsweets.corner"
+      "package": "com.anilsweets.corner",
+      "googleServicesFile": "./google-services.json"
     },
     "scheme": "anilsweets",
     "extra": {
