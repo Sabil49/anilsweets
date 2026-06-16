@@ -10,10 +10,10 @@
         "origin": false
       },
       "eas": {
-        "projectId": "587f68db-ffc5-4278-b545-f7da6cf66d46"
+        "projectId": "be6f71c8-98a3-4a05-80b4-b37e7eb57044"
       }
     },
-    "owner": "sabil10",
+    "owner": "myzoapp",
     "icon": "./assets/icon.png",
     "adaptiveIcon": {
       "foregroundImage": "./assets/adaptive-icon.png",
