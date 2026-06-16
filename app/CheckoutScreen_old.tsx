@@ -123,7 +123,13 @@ export default function CheckoutScreen() {
   if (showOrderTracking && currentOrder) {
     return (
       <View style={styles.container}>
-        <OrderTrackingScreen order={currentOrder} onGoHome={handleGoHome} />
+        <OrderTrackingScreen
+          orders={[currentOrder]}
+          selectedOrderId={currentOrder.id}
+          onSelectOrder={() => {}}
+          order={currentOrder}
+          onGoHome={handleGoHome}
+        />
       </View>
     );
   }
@@ -267,7 +273,13 @@ export default function CheckoutScreen() {
         onRequestClose={() => {}}
       >
         {currentOrder && (
-          <OrderTrackingScreen order={currentOrder} onGoHome={handleGoHome} />
+          <OrderTrackingScreen
+            orders={[currentOrder]}
+            selectedOrderId={currentOrder.id}
+            onSelectOrder={() => {}}
+            order={currentOrder}
+            onGoHome={handleGoHome}
+          />
         )}
       </Modal>
     </SafeAreaView>

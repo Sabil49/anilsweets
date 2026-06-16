@@ -68,14 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentUser);
         
         if (currentUser) {
-          // Fetch user profile from Firestore
           const userDocRef = doc(db, 'users', currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
-          
-          if (userDocSnap.exists()) {
+
+          if (userDocSnap.exists) {
             setUserProfile(userDocSnap.data() as UserProfile);
           } else {
-            // Create initial profile
             const newProfile: UserProfile = {
               id: currentUser.uid,
               email: currentUser.email || '',

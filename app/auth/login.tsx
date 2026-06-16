@@ -29,6 +29,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
   const [loading, setLoading] = useState(false);
 
   const { signIn, error, clearError } = useAuth();
+  const router = useRouter();
 
   const validateForm = () => {
     if (!email.trim()) {
@@ -129,7 +130,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
           </View>
 
           {/* Forgot Password */}
-          <TouchableOpacity disabled={loading}>
+          <TouchableOpacity disabled={loading} onPress={() => router.push('/auth/forgot-password')}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>

@@ -5,7 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 export default function Checkout() {
   return (
     <ScreenWrapper>
-      <StatusBar style="dark" backgroundColor="#FFF8F0" />
+      <StatusBar style="dark" />
       <CheckoutScreen />
     </ScreenWrapper>
   );

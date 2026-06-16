@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 import { collection, doc, addDoc, getDocs } from '@react-native-firebase/firestore';
 import { db } from '../config/firebase';
 import { Order, OrderItem } from '../app/order-tracking';
@@ -17,6 +18,7 @@ interface OrderContextType {
   fetchUserOrders: (userId: string) => Promise<void>;
   addOrder: (order: Order) => void;
   setCurrentOrder: (order: Order | null) => void;
+  clearOrders: () => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -111,12 +113,36 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           )
         );
 
-        if (currentOrder?.id === orderId) {
-          setCurrentOrder((prev) => (prev ? { ...prev, status } : null));
-        }
+        setCurrentOrder((prev) => (prev?.id === orderId ? { ...prev, status } : prev));
       }, (index + 1) * 30000); // Update every 30 seconds for demo
     });
   };
+
+  const clearOrders = useCallback(() => {
+    setOrders([]);
+    setCurrentOrder(null);
+  }, []);
+
+  const fetchedUserIdRef = React.useRef<string | null>(null);
+
+  // Auto-fetch orders when user logs in or re-enters the same account
+  const { userProfile } = useAuth();
+
+  useEffect(() => {
+    if (!userProfile?.id) {
+      fetchedUserIdRef.current = null;
+      clearOrders();
+      return;
+    }
+
+    if (userProfile.id !== fetchedUserIdRef.current) {
+      fetchUserOrders(userProfile.id)
+        .catch((err) => console.error('Error refreshing orders on login:', err))
+        .finally(() => {
+          fetchedUserIdRef.current = userProfile.id;
+        });
+    }
+  }, [userProfile?.id, fetchUserOrders, clearOrders]);
 
   return (
     <OrderContext.Provider
@@ -128,6 +154,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         fetchUserOrders,
         addOrder,
         setCurrentOrder,
+        clearOrders,
       }}
     >
       {children}

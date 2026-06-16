@@ -24,7 +24,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <OrderProvider>
-            <StatusBar style="dark" backgroundColor={theme.colors.background} />
+            <StatusBar style="dark" />
           </OrderProvider>
         </CartProvider>
       </AuthProvider>

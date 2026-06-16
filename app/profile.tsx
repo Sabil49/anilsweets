@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   FlatList,
   Switch,
-  SafeAreaView,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/Header';
 import { useAuth } from '../constants/AuthContext';
@@ -26,20 +27,15 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }) => {
-  const { userProfile, logout, error: authError } = useAuth();
-  const { orders, fetchUserOrders, loading: ordersLoading } = useOrder();
+  const router = useRouter();
+  const { userProfile, logout, loading: authLoading } = useAuth();
+  const { orders, loading: ordersLoading, clearOrders } = useOrder();
   const { data: addressData } = useGetAddressesQuery(userProfile?.id ?? '', {
     skip: !userProfile?.id,
   });
   const backendAddresses = addressData?.addresses ?? [];
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  useEffect(() => {
-    if (userProfile?.id) {
-      fetchUserOrders(userProfile.id);
-    }
-  }, [userProfile?.id]);
 
   const handleLogout = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -50,6 +46,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
           try {
             setLoading(true);
             await logout();
+            clearOrders();
             onLogout();
           } catch (err) {
             Alert.alert('Error', 'Failed to sign out. Please try again.');
@@ -215,27 +212,36 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
           />
         </View>
 
-        <TouchableOpacity style={styles.settingItem}>
+<TouchableOpacity
+          style={styles.settingItem}
+          activeOpacity={0.8}
+          onPress={() => router.push('/auth/change-password')}
+        >
           <MaterialCommunityIcons
             name="lock-reset"
             size={20}
             color={theme.colors.primary}
           />
-          <Text style={[styles.settingTitle, { marginLeft: theme.spacing.md, flex: 1 }]}>
-            Change Password
-          </Text>
+          <Text style={[styles.settingTitle, { marginLeft: theme.spacing.md, flex: 1 }]}>Change Password</Text>
           <MaterialCommunityIcons name="chevron-right" size={20} color={theme.colors.muted} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity
+          style={styles.settingItem}
+          activeOpacity={0.8}
+          onPress={() => {
+            const supportUrl = 'mailto:support@anilsweetscorner.com?subject=Need%20Help%20with%20Anil%20Sweets';
+            Linking.openURL(supportUrl).catch(() => {
+              Alert.alert('Support', 'Unable to open email client. Please contact support@anilsweetscorner.com');
+            });
+          }}
+        >
           <MaterialCommunityIcons
             name="help-circle"
             size={20}
             color={theme.colors.primary}
           />
-          <Text style={[styles.settingTitle, { marginLeft: theme.spacing.md, flex: 1 }]}>
-            Help & Support
-          </Text>
+          <Text style={[styles.settingTitle, { marginLeft: theme.spacing.md, flex: 1 }]}>Help & Support</Text>
           <MaterialCommunityIcons name="chevron-right" size={20} color={theme.colors.muted} />
         </TouchableOpacity>
 
@@ -320,20 +326,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
 
 export default function ProfileRoute() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.replace('/auth/login');
     }
-  }, [user, router]);
+  }, [loading, user, router]);
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
     router.replace('/auth/login');
   };
 
-  if (!user) {
+  if (loading || !user) {
     return null;
   }
 

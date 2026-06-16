@@ -5,7 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 export default function ProductList() {
   return (
     <ScreenWrapper>
-      <StatusBar style="dark" backgroundColor="#FFF8F0" />
+      <StatusBar style="dark" />
       <ProductListScreen />
     </ScreenWrapper>
   );

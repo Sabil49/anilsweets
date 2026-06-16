@@ -3,6 +3,7 @@
     "name": "Anil Sweets Corner",
     "slug": "anil-sweets-corner",
     "version": "1.0.0",
+    "scheme": "anilsweets",
     "extra": {
       "API_URL": "https://anilsweetbackend.vercel.app",
       "router": {
@@ -12,6 +13,36 @@
         "projectId": "587f68db-ffc5-4278-b545-f7da6cf66d46"
       }
     },
-    "owner": "sabil10"
+    "owner": "sabil10",
+    "icon": "./assets/icon.png",
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#FFFFFF"
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "useModularHeaders": true
+          }
+        }
+      ]
+    ],
+    "ios": {
+      "bundleIdentifier": "yyyyyy",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.anilsweets.corner"
+    }
   }
 }

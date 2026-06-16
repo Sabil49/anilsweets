@@ -15,6 +15,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors, Radius, theme } from '../constants/theme';
 import PrimaryButton from '../components/PrimaryButton';
 import { useCart } from '../constants/CartContext';
+import { useWishlist } from '../constants/WishlistContext';
 import { reviews, type Product } from '../data/mockData';
 
 const { width } = Dimensions.get('window');
@@ -59,9 +60,9 @@ export default function ProductDetailScreen() {
   const params = useLocalSearchParams<ProductDetailScreenRouteParams>();
   const product = params.product ? JSON.parse(params.product as string) : null;
   const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [instructions, setInstructions] = useState('');
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   if (!product) return null;
 
@@ -100,20 +101,26 @@ export default function ProductDetailScreen() {
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.wishBtn}
-            onPress={() => setIsWishlisted(!isWishlisted)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={isWishlisted ? 'heart' : 'heart-outline'}
-              size={20}
-              color={isWishlisted ? '#EF4444' : Colors.text}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.shareBtn} activeOpacity={0.8}>
-            <Ionicons name="share-outline" size={20} color={Colors.text} />
-          </TouchableOpacity>
+          <View style={styles.topActions}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => toggleFavorite(product.id)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isFavorite(product.id) ? 'heart' : 'heart-outline'}
+                size={20}
+                color={isFavorite(product.id) ? '#EF4444' : Colors.text}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="share-outline" size={20} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
           {product.badge && (
             <View style={styles.heroBadge}>
               <Ionicons name="star" size={10} color="#fff" />
@@ -263,10 +270,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shareBtn: {
+  topActions: {
     position: 'absolute',
     top: 52,
     right: theme.spacing.md,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  iconBtn: {
     width: 38,
     height: 38,
     borderRadius: 12,

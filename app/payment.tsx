@@ -376,3 +376,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold' as const,
   },
 });
+
+export default PaymentScreen;

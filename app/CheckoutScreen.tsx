@@ -23,6 +23,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { addDoc, collection, doc } from '@react-native-firebase/firestore';
+import { db } from '../config/firebase';
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -35,6 +37,9 @@ import { ScreenHeader } from "../components/Header";
 function extractOrderId(url: string): string | null {
   try {
     const parsed = new URL(url);
+    // Handle dev-client wrapping: ?url=<original_url>
+    const nested = parsed.searchParams.get("url");
+    if (nested) return extractOrderId(decodeURIComponent(nested));
     const id =
       parsed.searchParams.get("orderId") ??
       parsed.searchParams.get("order_id");
@@ -60,6 +65,7 @@ export default function CheckoutScreen() {
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
+  const [paymentStarted, setPaymentStarted] = useState(false);
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [showingError, setShowingError] = useState(false); // prevents blank-screen flash
 
@@ -69,6 +75,7 @@ export default function CheckoutScreen() {
   const { data: addressData, isLoading: addressQueryLoading } = useGetAddressesQuery(user?.uid ?? '', {
     skip: !user?.uid,
   });
+  const redirectingRef = useRef(false);
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -113,8 +120,18 @@ export default function CheckoutScreen() {
   }, []);
 
   // Deep link handler
-  useEffect(() => {
-    const handleUrl = ({ url }: { url: string }) => {
+  const handlePaymentReturn = (url: string) => {
+    if (
+      url.includes("checkout/success") ||
+      url.includes("/return") ||
+      url.includes("order-success") ||
+      url.startsWith("anilsweets://") ||
+      url.includes("error=")
+    ) {
+      if (redirectingRef.current) return;
+      redirectingRef.current = true;
+      setWebViewUrl(null);
+
       console.log("[Checkout] Deep link received:", url);
 
       if (
@@ -125,21 +142,21 @@ export default function CheckoutScreen() {
       ) {
         const orderId = extractOrderId(url);
         console.log("[Checkout] Extracted orderId:", orderId);
-        setWebViewUrl(null);
 
         if (orderId && orderId !== "" && orderId !== "success") {
-          // Navigate to the app success screen with orderId query
           router.replace(`/order-success?orderId=${encodeURIComponent(orderId)}` as any);
         } else {
-          console.warn("[Checkout] No valid orderId, going to account");
-          router.replace("/account" as any);
+          console.warn("[Checkout] No valid orderId, staying on checkout");
+          Alert.alert(
+            "Payment Redirect Error",
+            "We received a payment return URL but could not parse an order ID. Please check your orders or try again."
+          );
+          router.replace("/");
         }
         return;
       }
 
       if (url.includes("error=")) {
-        setWebViewUrl(null);
-        // parse error param manually for custom schemes
         const errorMatch = url.match(/[?&]error=([^&]+)/);
         const errorParam = errorMatch ? decodeURIComponent(errorMatch[1]) : "";
         const messages: Record<string, string> = {
@@ -153,10 +170,14 @@ export default function CheckoutScreen() {
           messages[errorParam] ?? "An unexpected error occurred.",
         );
       }
-    };
+    }
+  };
+
+  useEffect(() => {
+    const handleUrl = ({ url }: { url: string }) => handlePaymentReturn(url);
     const sub = Linking.addEventListener("url", handleUrl);
     Linking.getInitialURL().then((url) => {
-      if (url) handleUrl({ url });
+      if (url) handlePaymentReturn(url);
     });
     return () => sub.remove();
   }, [router]);
@@ -204,6 +225,8 @@ export default function CheckoutScreen() {
       return;
     }
 
+    setPaymentStarted(true);
+
     try {
       console.log("[Checkout] Starting order creation with address:", {
         id: selectedAddress.id,
@@ -245,6 +268,17 @@ export default function CheckoutScreen() {
       addOrder(mappedCurrentOrder);
       setCurrentOrder(mappedCurrentOrder);
 
+      if (user?.uid) {
+        const firestoreOrder = { ...mappedCurrentOrder };
+        delete (firestoreOrder as any).id;
+        try {
+          await addDoc(collection(doc(db, 'users', user.uid), 'orders'), firestoreOrder);
+          console.log('[Checkout] Order also saved to Firestore for user', user.uid);
+        } catch (firestoreError) {
+          console.warn('[Checkout] Failed to save order to Firestore:', firestoreError);
+        }
+      }
+
       console.log("[Checkout] Order created successfully:", result.order.id);
       console.log("[Checkout] Order response:", JSON.stringify(result, null, 2));
       console.log("[Checkout] Selected address:", selectedAddress);
@@ -276,6 +310,7 @@ export default function CheckoutScreen() {
       setWebViewUrl(checkoutUrl);
     } catch (err: any) {
       console.error("[Checkout] Error:", err);
+      setPaymentStarted(false);
 
       const raw: string =
         err?.data?.error ??
@@ -294,6 +329,8 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
+    if (paymentStarted) return;
+
     // If still loading auth, do nothing
     if (authLoading) return;
 
@@ -330,7 +367,10 @@ export default function CheckoutScreen() {
                     {
                       text: "Yes, Cancel",
                       style: "destructive",
-                      onPress: () => setWebViewUrl(null),
+                      onPress: () => {
+                        setWebViewUrl(null);
+                        setPaymentStarted(false);
+                      },
                     },
                   ],
                 )
@@ -348,30 +388,20 @@ export default function CheckoutScreen() {
           <WebView
             source={{ uri: webViewUrl! }}
             style={{ flex: 1 }}
-            onNavigationStateChange={(navState) => {
-              const url = navState.url;
+            onShouldStartLoadWithRequest={(request) => {
+              const url = request.url;
               if (
-                  url.startsWith("myzo://") ||
-                  url.startsWith("anilsweets://") ||
-                  url.includes("checkout/success") ||
-                  url.includes("/return") ||
-                  url.includes("order-success")
+                url.startsWith("myzo://") ||
+                url.startsWith("anilsweets://") ||
+                url.includes("checkout/success") ||
+                url.includes("/return") ||
+                url.includes("order-success") ||
+                url.includes("error=")
               ) {
-                setWebViewUrl(null);
-                const orderId = extractOrderId(url);
-                console.log(
-                  "[WebView] Intercepted URL:",
-                  url,
-                  "orderId:",
-                  orderId,
-                );
-
-                if (orderId && orderId !== "" && orderId !== "success") {
-                  router.replace(`/order-success?orderId=${encodeURIComponent(orderId)}` as any);
-                } else {
-                  router.replace("/account" as any);
-                }
+                handlePaymentReturn(url);
+                return false;
               }
+              return true;
             }}
             startInLoadingState
             renderLoading={() => (
@@ -526,10 +556,10 @@ export default function CheckoutScreen() {
           onPress={handlePlaceOrder}
           size="lg"
           fullWidth
-          loading={isLoading}
-          disabled={isLoading || addressesLoading}
+          loading={isLoading || paymentStarted}
+          disabled={isLoading || addressesLoading || paymentStarted}
         >
-          {buttonText}
+          {paymentStarted ? 'Redirecting...' : buttonText}
         </Button>
       </View>
     </View>

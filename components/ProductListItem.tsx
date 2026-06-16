@@ -64,7 +64,7 @@ export default function ProductListItem({ product, onPress }: ProductListItemPro
                 onPress={() => updateQuantity(product.id, qty - 1)}
                 style={styles.qtyBtn}
               >
-                <Text style={styles.qtyBtnText}>−</Text>
+                <Text style={styles.qtyBtnText}>-</Text>
               </TouchableOpacity>
               <Text style={styles.qtyNum}>{qty}</Text>
               <TouchableOpacity

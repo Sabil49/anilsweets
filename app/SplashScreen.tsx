@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Animated,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Colors, theme } from '../constants/theme';
 
@@ -50,7 +51,11 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       <Animated.View
         style={[styles.card, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}
       >
-        <View style={styles.logoCircle} />
+        <Image
+          source={require('../assets/splash.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <View style={styles.starDot}>
           <Text style={{ fontSize: 16 }}>⭐</Text>
         </View>
@@ -133,6 +138,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
+  },
+  logoImage: {
+    width: 220,
+    height: 220,
+    borderRadius: 28,
+    marginBottom: theme.spacing.lg,
   },
   starDot: {
     position: 'absolute',

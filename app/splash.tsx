@@ -9,7 +9,7 @@ export default function Splash() {
 
   return (
     <ScreenWrapper>
-      <StatusBar style="dark" backgroundColor="#FFF8F0" />
+      <StatusBar style="dark" />
       <SplashScreen onFinish={() => router.replace('/')} />
     </ScreenWrapper>
   );

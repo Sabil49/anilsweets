@@ -5,7 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 export default function Cart() {
   return (
     <ScreenWrapper>
-      <StatusBar style="dark" backgroundColor="#FFF8F0" />
+      <StatusBar style="dark" />
       <CartScreen />
     </ScreenWrapper>
   );

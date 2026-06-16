@@ -45,11 +45,22 @@ export function HomeHeader({ onCartPress }: HomeHeaderProps) {
 
 export function ScreenHeader({ title, subtitle, onBack, rightIcon, onRightPress, compact }: ScreenHeaderProps) {
   const { totalItems } = useCart();
+  const lastBackRef = React.useRef<number>(0);
+
+  const handleBack = () => {
+    const now = Date.now();
+    if (now - lastBackRef.current < 400) {
+      // Ignore rapid repeated taps
+      return;
+    }
+    lastBackRef.current = now;
+    onBack && onBack();
+  };
 
   return (
     <View style={[styles.screenHeader, compact && styles.screenHeaderCompact]}>
       {onBack ? (
-        <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={Colors.text} />
         </TouchableOpacity>
       ) : (

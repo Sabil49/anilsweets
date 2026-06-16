@@ -90,8 +90,15 @@ export default function AddAddressScreen() {
       console.log('[AddAddress] Backend response:', backendResponse);
       Alert.alert('Address Added', 'Your address has been saved.');
       router.back();
-    } catch (err) {
-      Alert.alert('Error', authError || 'Unable to save address. Please try again.');
+    } catch (err: any) {
+      let raw = err?.data?.error ?? err?.message ?? err?.data ?? String(err);
+      try {
+        const { sanitizeErrorMessage } = require('../../constants/utils');
+        raw = sanitizeErrorMessage(raw);
+      } catch (e) {
+        raw = String(raw);
+      }
+      Alert.alert('Error', raw || 'Unable to save address. Please try again.');
       console.error('[AddAddress] Error:', err);
     } finally {
       setLoading(false);

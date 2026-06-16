@@ -8,7 +8,7 @@ export default function OrderSuccess() {
 
   return (
     <ScreenWrapper>
-      <StatusBar style="dark" backgroundColor="#FFF8F0" />
+      <StatusBar style="dark" />
       <OrderSuccessScreen onFinish={() => setFinished(true)} />
     </ScreenWrapper>
   );
