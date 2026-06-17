@@ -10,20 +10,10 @@
         "origin": false
       },
       "eas": {
-        "projectId": "be6f71c8-98a3-4a05-80b4-b37e7eb57044"
+        "projectId": "d44f723a-dd79-4d02-ac9a-bcdc859deebf"
       }
     },
-    "owner": "myzoapp",
     "icon": "./assets/icon.png",
-    "adaptiveIcon": {
-      "foregroundImage": "./assets/adaptive-icon.png",
-      "backgroundColor": "#FFFFFF"
-    },
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
     "plugins": [
       [
         "expo-build-properties",
@@ -36,13 +26,17 @@
       ]
     ],
     "ios": {
-      "bundleIdentifier": "yyyyyy",
+      "bundleIdentifier": "com.anilsweets.corner",
+      "buildNumber": "8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
-      "package": "com.anilsweets.corner"
-    }
+      "package": "com.anilsweets.corner",
+      "googleServicesFile": "./google-services.json"
+    },
+    "owner": "myzoapp8780"
   }
 }
