@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { theme } from '../../constants/theme';
+import { getUserFriendlyErrorMessage } from '../../constants/utils';
 
 export default function ChangePasswordRoute() {
   const router = useRouter();
@@ -53,21 +54,16 @@ export default function ChangePasswordRoute() {
       ]);
     } catch (err: any) {
       console.error('Change password error:', err);
-      let message = 'Failed to update password. Please try again.';
-      const errMsg = err?.message || String(err);
-      if (errMsg.includes('wrong-password')) {
-        message = 'Current password is incorrect. Please try again.';
-      } else if (errMsg.includes('requires-recent-login')) {
-        message = 'Please sign in again before changing your password.';
-      }
-      // sanitize message display
-      try {
-        // lazy import to avoid circulars at runtime
-        const { sanitizeErrorMessage } = require('../../constants/utils');
-        Alert.alert('Error', sanitizeErrorMessage(message));
-      } catch (e) {
-        Alert.alert('Error', message);
-      }
+      const errorText = String(err?.code ?? err?.message ?? err).toLowerCase();
+      const message =
+        errorText.includes('invalid-credential') ||
+        errorText.includes('wrong-password')
+          ? 'Your current password is incorrect. Please try again.'
+          : getUserFriendlyErrorMessage(
+              err,
+              'Unable to update your password. Please try again.',
+            );
+      Alert.alert('Unable to Update Password', message);
     } finally {
       setLoading(false);
     }

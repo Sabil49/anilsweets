@@ -7,6 +7,7 @@ export interface Address {
   fullName: string;
   phone: string;
   address: string;
+  addressLine1?: string;
   addressLine2?: string;
   city: string;
   state: string;
@@ -41,6 +42,13 @@ export const addressesApi = createApi({
         url: '/api/addresses',
         headers: { 'x-user-id': userId },
       }),
+      transformResponse: (response: { addresses: Address[] }) => ({
+        addresses: response.addresses.map((address) => ({
+          ...address,
+          address: address.address || address.addressLine1 || '',
+          pincode: address.pincode || address.zipCode,
+        })),
+      }),
       providesTags: ['Address'],
     }),
     createAddress: builder.mutation<{ address: Address }, CreateAddressRequest>({
@@ -48,6 +56,18 @@ export const addressesApi = createApi({
         url: '/api/addresses',
         method: 'POST',
         body: data,
+      }),
+      transformResponse: (response: { address: Address }) => ({
+        address: {
+          ...response.address,
+          address:
+            response.address.address ||
+            response.address.addressLine1 ||
+            '',
+          pincode:
+            response.address.pincode ||
+            response.address.zipCode,
+        },
       }),
       invalidatesTags: ['Address'],
     }),

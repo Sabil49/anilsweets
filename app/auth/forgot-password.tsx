@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { theme } from '../../constants/theme';
+import { getUserFriendlyErrorMessage } from '../../constants/utils';
 
 export default function ForgotPasswordRoute() {
   const router = useRouter();
@@ -33,10 +34,13 @@ export default function ForgotPasswordRoute() {
       ]);
     } catch (err: any) {
       console.error('Forgot password error:', err);
-      const message = err?.message?.includes('user-not-found')
-        ? 'No account found for this email.'
-        : 'Unable to send password reset email. Please try again.';
-      Alert.alert('Error', message);
+      Alert.alert(
+        'Unable to Send Email',
+        getUserFriendlyErrorMessage(
+          err,
+          'Unable to send the password reset email. Please try again.',
+        ),
+      );
     } finally {
       setLoading(false);
     }

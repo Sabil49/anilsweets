@@ -21,6 +21,7 @@ import { auth } from '../config/firebase';
 import { useOrder } from '../constants/OrderContext';
 import { useGetAddressesQuery } from '../store/services/addressesApi';
 import { theme } from '../constants/theme';
+import { getUserFriendlyErrorMessage } from '../constants/utils';
 
 interface ProfileScreenProps {
   onLogout: () => void;
@@ -83,8 +84,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
               Alert.alert('Account Deleted', 'Your account has been deleted.');
             } catch (err: any) {
               console.error('Error deleting account:', err);
-              const message = err?.message ?? 'Failed to delete account. Please try again.';
-              Alert.alert('Error', message);
+              Alert.alert(
+                'Unable to Delete Account',
+                getUserFriendlyErrorMessage(
+                  err,
+                  'Unable to delete your account. Please try again.',
+                ),
+              );
             } finally {
               setLoading(false);
             }

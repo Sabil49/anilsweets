@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from '../config/firebase';
+import { getUserFriendlyErrorMessage } from './utils';
 
 interface UserProfile {
   id: string;
@@ -88,7 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (err) {
         console.error('Error loading user profile:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
+        setError(
+          getUserFriendlyErrorMessage(
+            err,
+            'We could not load your profile. Please try again.',
+          ),
+        );
       } finally {
         setLoading(false);
       }
@@ -181,24 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const handleAuthError = (err: unknown) => {
-    if (err instanceof Error) {
-      const message = err.message;
-      if (message.includes('email-already-in-use')) {
-        setError('Email already registered. Please sign in.');
-      } else if (message.includes('invalid-email')) {
-        setError('Invalid email address.');
-      } else if (message.includes('weak-password')) {
-        setError('Password is too weak. Use at least 6 characters.');
-      } else if (message.includes('user-not-found')) {
-        setError('Email not found. Please sign up first.');
-      } else if (message.includes('wrong-password')) {
-        setError('Incorrect password.');
-      } else {
-        setError(message);
-      }
-    } else {
-      setError('An unexpected error occurred.');
-    }
+    setError(getUserFriendlyErrorMessage(err));
   };
 
   return (

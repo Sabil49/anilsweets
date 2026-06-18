@@ -16,6 +16,7 @@ import { ScreenHeader } from '../../components/Header';
 import { theme } from '../../constants/theme';
 import { useCreateAddressMutation } from '../../store/services/addressesApi';
 import { API_URL } from '../../constants/config';
+import { getUserFriendlyErrorMessage } from '../../constants/utils';
 
 export default function AddAddressScreen() {
   const router = useRouter();
@@ -91,14 +92,11 @@ export default function AddAddressScreen() {
       Alert.alert('Address Added', 'Your address has been saved.');
       router.back();
     } catch (err: any) {
-      let raw = err?.data?.error ?? err?.message ?? err?.data ?? String(err);
-      try {
-        const { sanitizeErrorMessage } = require('../../constants/utils');
-        raw = sanitizeErrorMessage(raw);
-      } catch (e) {
-        raw = String(raw);
-      }
-      Alert.alert('Error', raw || 'Unable to save address. Please try again.');
+      const message = getUserFriendlyErrorMessage(
+        err?.data?.error ?? err,
+        'Unable to save your address. Please try again.',
+      );
+      Alert.alert('Unable to Save Address', message);
       console.error('[AddAddress] Error:', err);
     } finally {
       setLoading(false);

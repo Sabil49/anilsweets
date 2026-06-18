@@ -50,6 +50,24 @@ const statusSteps = [
   { status: 'delivered', label: 'Delivered', icon: 'home-circle' as const },
 ];
 
+const cleanDeliveryAddress = (value: string) =>
+  value
+    .split('\n')
+    .map((line) =>
+      line
+        .split(',')
+        .map((part) => part.trim())
+        .filter(
+          (part) =>
+            part &&
+            part.toLowerCase() !== 'undefined' &&
+            part.toLowerCase() !== 'null',
+        )
+        .join(', '),
+    )
+    .filter(Boolean)
+    .join('\n');
+
 export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order, orders, selectedOrderId, onSelectOrder, onGoHome }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const scaleAnim = React.useRef(new Animated.Value(0)).current;
@@ -222,7 +240,9 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ order,
                 color={theme.colors.primary}
                 style={{ marginRight: theme.spacing.md }}
               />
-              <Text style={styles.addressText}>{order.deliveryAddress}</Text>
+              <Text style={styles.addressText}>
+                {cleanDeliveryAddress(order.deliveryAddress)}
+              </Text>
             </View>
           </>
         )}
@@ -506,9 +526,10 @@ const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 14,
     color: theme.colors.primary,
     fontWeight: '500' as const,
+    lineHeight: 21,
   },
   supportCard: {
     flexDirection: 'row' as const,

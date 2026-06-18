@@ -32,6 +32,7 @@ import {
 import { WebView } from "react-native-webview";
 import Constants from "expo-constants";
 import { ScreenHeader } from "../components/Header";
+import { getUserFriendlyErrorMessage } from "../constants/utils";
 
 // helper to parse return URLs from the payment provider (web or custom scheme)
 function extractOrderId(url: string): string | null {
@@ -83,14 +84,6 @@ export default function CheckoutScreen() {
     } else {
       router.replace('/cart');
     }
-  };
-
-  const formatErrorMessage = (value: unknown) => {
-    if (!value) return 'Unable to start payment. Please try again.';
-    if (typeof value === 'string') return value;
-    if (value instanceof Error) return value.message;
-    if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
   };
 
   const addresses: Address[] = addressData?.addresses ?? [];
@@ -225,6 +218,39 @@ export default function CheckoutScreen() {
       return;
     }
 
+    const streetAddress =
+      selectedAddress.address?.trim() ||
+      selectedAddress.addressLine1?.trim() ||
+      '';
+    const postalCode =
+      selectedAddress.zipCode?.trim() ||
+      selectedAddress.pincode?.trim() ||
+      '';
+    const addressLines = [
+      selectedAddress.fullName?.trim(),
+      selectedAddress.phone?.trim()
+        ? `Phone: ${selectedAddress.phone.trim()}`
+        : '',
+      [streetAddress, selectedAddress.addressLine2?.trim()]
+        .filter(Boolean)
+        .join(', '),
+      [
+        selectedAddress.city?.trim(),
+        selectedAddress.state?.trim(),
+        postalCode,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    ].filter(Boolean);
+
+    if (!streetAddress) {
+      Alert.alert(
+        "Address Incomplete",
+        "Please update your delivery address before continuing.",
+      );
+      return;
+    }
+
     setPaymentStarted(true);
 
     try {
@@ -262,7 +288,7 @@ export default function CheckoutScreen() {
           quantity: item.quantity ?? 1,
           price: item.price ?? 0,
         })),
-        deliveryAddress: `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.zipCode ?? selectedAddress.pincode}`,
+        deliveryAddress: addressLines.join('\n'),
         estimatedDelivery: Date.now() + 3 * 24 * 60 * 60 * 1000,
       };
       addOrder(mappedCurrentOrder);
@@ -312,9 +338,10 @@ export default function CheckoutScreen() {
       console.error("[Checkout] Error:", err);
       setPaymentStarted(false);
 
-      const raw: string =
-        err?.data?.error ??
-        formatErrorMessage(err);
+      const raw = getUserFriendlyErrorMessage(
+        err?.data?.error ?? err,
+        'Unable to start payment. Please try again.',
+      );
 
       // Show inline for stock errors — keeps the user on this screen
       const isStock = /stock|insufficient|only has/i.test(raw);
