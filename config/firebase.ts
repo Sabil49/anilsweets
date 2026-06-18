@@ -1,15 +1,16 @@
+// firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
@@ -19,9 +20,9 @@ export const db = getFirestore(app);
 
 // Dodo payment configuration
 export const DODO_CONFIG = {
-  testSecret: 'UqHBJ0E-caVpuaaB.rFBvTIMQxrgUibcxnMrkOA4A8iHbZM6ijXK_t8LNCl8xvMm-',
-  liveSecret: 'ZK1dKyRrkOzR5TKH.Zg2R_uU8mApW4x2sOTPtn1RntFU6EVVPrmFi-ZEw-XwQOQii',
-  webhookKey: 'whsec_VAs0NPSapLuwBIuXn2TNvCJtV5EVHK3F',
-  productId: 'pdt_0NXgG1Abo7Esjd8sBznXB',
-  environment: 'live',
+  testSecret: process.env.EXPO_PUBLIC_DODO_TEST_SECRET,
+  liveSecret: process.env.EXPO_PUBLIC_DODO_LIVE_SECRET,
+  webhookKey: process.env.EXPO_PUBLIC_DODO_WEBHOOK_KEY,
+  productId: process.env.EXPO_PUBLIC_DODO_PRODUCT_ID,
+  environment: process.env.EXPO_PUBLIC_DODO_ENVIRONMENT ?? 'test',
 };
