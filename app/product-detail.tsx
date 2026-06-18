@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import ProductDetailScreen from './ProductDetailScreen';
 import { useLocalSearchParams } from 'expo-router';
+import ProductDetailScreen from './ProductDetailScreen';
 import ScreenWrapper from '../components/ScreenWrapper';
 
 export default function ProductDetail() {

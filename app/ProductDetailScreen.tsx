@@ -58,13 +58,33 @@ type ProductDetailScreenRouteParams = {
 export default function ProductDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<ProductDetailScreenRouteParams>();
-  const product = params.product ? JSON.parse(params.product as string) : null;
-  const { addToCart } = useCart();
-  const { isFavorite, toggleFavorite } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [instructions, setInstructions] = useState('');
 
-  if (!product) return null;
+  let product: Product | null = null;
+  if (params.product) {
+    try {
+      product = JSON.parse(params.product as string);
+    } catch (error) {
+      console.error('Invalid product route parameter:', error, params.product);
+      product = null;
+    }
+  }
+
+  const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useWishlist();
+
+  if (!product) {
+    return (
+      <View style={[styles.container, styles.errorContainer]}>
+        <Text style={styles.errorTitle}>Product unavailable</Text>
+        <Text style={styles.errorMessage}>
+          Unable to load product details. Please go back and try again.
+        </Text>
+        <PrimaryButton title="Back to shopping" onPress={() => router.push('/')} />
+      </View>
+    );
+  }
 
   const totalPrice = product.price * quantity;
   const savings = product.originalPrice ? (product.originalPrice - product.price) * quantity : 0;
@@ -535,5 +555,24 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+    backgroundColor: Colors.background,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: Colors.muted,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
   },
 });

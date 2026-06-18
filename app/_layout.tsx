@@ -6,28 +6,31 @@ import { CartProvider } from '../constants/CartContext';
 import { AuthProvider } from '../constants/AuthContext';
 import { OrderProvider } from '../constants/OrderContext';
 import { WishlistProvider } from '../constants/WishlistContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { theme } from '../constants/theme';
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <Provider store={store}>
-        <AuthProvider>
-          <CartProvider>
-            <OrderProvider>
-              <WishlistProvider>
-                <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'left', 'right', 'bottom']}>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                    }}
-                  />
-                </SafeAreaView>
-              </WishlistProvider>
-            </OrderProvider>
-          </CartProvider>
-        </AuthProvider>
-      </Provider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <AuthProvider>
+            <CartProvider>
+              <OrderProvider>
+                <WishlistProvider>
+                  <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'left', 'right', 'bottom']}>
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                      }}
+                    />
+                  </SafeAreaView>
+                </WishlistProvider>
+              </OrderProvider>
+            </CartProvider>
+          </AuthProvider>
+        </Provider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

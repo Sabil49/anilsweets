@@ -1,0 +1,2 @@
+# Keep GoogleService-Info.plist included for iOS Firebase
+# Do not add it to this ignore file if you need Firebase on iOS

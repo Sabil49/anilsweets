@@ -16,7 +16,8 @@ import { Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/Header';
 import { useAuth } from '../constants/AuthContext';
-import { authInstance } from '../config/firebase';
+import { deleteUser } from "firebase/auth";
+import { auth } from '../config/firebase';
 import { useOrder } from '../constants/OrderContext';
 import { useGetAddressesQuery } from '../store/services/addressesApi';
 import { theme } from '../constants/theme';
@@ -70,12 +71,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, onBack }
           onPress: async () => {
             try {
               setLoading(true);
-              const currentUser = authInstance.currentUser;
+              const currentUser = auth.currentUser;
               if (!currentUser) {
                 throw new Error('No authenticated user found.');
               }
 
-              await currentUser.delete();
+              await deleteUser(currentUser);
               await logout();
               onLogout();
 

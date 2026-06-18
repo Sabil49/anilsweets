@@ -10,12 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { authInstance } from '../../config/firebase';
-import {
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-} from '@react-native-firebase/auth';
+import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { theme } from '../../constants/theme';
 
 export default function ChangePasswordRoute() {
@@ -41,7 +36,8 @@ export default function ChangePasswordRoute() {
       return;
     }
 
-    const user = authInstance.currentUser;
+    const auth = getAuth();
+    const user = auth.currentUser;
     if (!user || !user.email) {
       Alert.alert('Error', 'Unable to update password at this time. Please sign in again.');
       return;

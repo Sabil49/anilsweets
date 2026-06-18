@@ -10,8 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { sendPasswordResetEmail } from '@react-native-firebase/auth';
-import { authInstance } from '../../config/firebase';
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { theme } from '../../constants/theme';
 
 export default function ForgotPasswordRoute() {
@@ -27,7 +26,8 @@ export default function ForgotPasswordRoute() {
 
     try {
       setLoading(true);
-      await sendPasswordResetEmail(authInstance, email.trim());
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email.trim());
       Alert.alert('Success', 'Password reset email sent. Check your inbox.', [
         { text: 'OK', onPress: () => router.replace('/auth/login') },
       ]);

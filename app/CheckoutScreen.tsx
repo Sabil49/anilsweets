@@ -23,8 +23,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { addDoc, collection, doc } from '@react-native-firebase/firestore';
-import { db } from '../config/firebase';
+import { addDoc, collection, doc } from "firebase/firestore";
+import { db } from "../config/firebase";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -244,7 +244,7 @@ export default function CheckoutScreen() {
         paymentMethod: "dodo",
         userId: user?.uid, // Firebase user ID (may be undefined for guests)
         userName: userProfile?.displayName || user?.displayName || "Customer",
-        userEmail: user?.email,
+        userEmail: user?.email ?? undefined,
       }).unwrap();
 
       const backendStatus = String(result.order.status ?? 'PLACED').toLowerCase();

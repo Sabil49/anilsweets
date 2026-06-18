@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { collection, doc, addDoc, getDocs } from '@react-native-firebase/firestore';
+import { collection, doc, addDoc, getDocs } from "firebase/firestore";
 import { db } from '../config/firebase';
 import { Order, OrderItem } from '../app/order-tracking';
 

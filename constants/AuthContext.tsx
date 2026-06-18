@@ -6,12 +6,10 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
-} from '@react-native-firebase/auth';
-import { doc, getDoc, setDoc } from '@react-native-firebase/firestore';
-import { authInstance, db } from '../config/firebase';
-
-// Define User type for React Native Firebase
-type User = any;
+  type User,
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from '../config/firebase';
 
 interface UserProfile {
   id: string;
@@ -63,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(authInstance, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       try {
         setUser(currentUser);
         
@@ -71,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userDocRef = doc(db, 'users', currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
-          if (userDocSnap.exists) {
+          if (userDocSnap.exists()) {
             setUserProfile(userDocSnap.data() as UserProfile);
           } else {
             const newProfile: UserProfile = {
@@ -107,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       setError(null);
-      const { user: newUser } = await createUserWithEmailAndPassword(authInstance, email, password);
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
       
       // Update display name
       await updateProfile(newUser, { displayName });
@@ -134,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      await signInWithEmailAndPassword(authInstance, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
       handleAuthError(err);
       throw err;
@@ -144,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       setError(null);
-      await signOut(authInstance);
+      await signOut(auth);
       setUserProfile(null);
     } catch (err) {
       handleAuthError(err);
@@ -155,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     try {
       setError(null);
-      await sendPasswordResetEmail(authInstance, email);
+      await sendPasswordResetEmail(auth, email);
     } catch (err) {
       handleAuthError(err);
       throw err;
